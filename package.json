@@ -1,0 +1,30 @@
+{
+  "name": "flashsale-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "db:push": "prisma db push",
+    "db:seed": "node prisma/seed.js",
+    "db:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1116.0",
+    "@nuxt/ui": "^2.18.4",
+    "@prisma/client": "^5.22.0",
+    "@prisma/extension-accelerate": "^3.0.1",
+    "bcryptjs": "^3.0.3",
+    "chart.js": "^4.5.1",
+    "nuxt": "^3.13.2",
+    "vue-chartjs": "^5.3.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.15",
+    "@types/bcryptjs": "^2.4.6",
+    "prisma": "^5.22.0"
+  }
+}
