@@ -12,11 +12,13 @@
         <!-- <span class="font-black text-red-600 tracking-tight text-lg">BAZARIN<span class="text-gray-900">AJA</span></span> -->
       </div>
 
-      <div v-if="selectedSession" class="flex items-center gap-2 text-sm">
-        <svg class="w-4 h-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        <span class="text-gray-500 font-medium">{{ selectedSession.isRunning ? 'BERAKHIR DALAM' : 'DIMULAI DALAM' }}</span>
-        <span class="font-mono font-bold text-gray-900 bg-gray-100 px-2 py-0.5 rounded-lg text-sm">{{ sessionCountdown }}</span>
-      </div>
+      <ClientOnly>
+        <div v-if="selectedSession" class="flex items-center gap-2 text-sm">
+          <svg class="w-4 h-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span class="text-gray-500 font-medium">{{ selectedSession.isRunning ? 'BERAKHIR DALAM' : 'DIMULAI DALAM' }}</span>
+          <span class="font-mono font-bold text-gray-900 bg-gray-100 px-2 py-0.5 rounded-lg text-sm">{{ sessionCountdown }}</span>
+        </div>
+      </ClientOnly>
     </div>
 
     <!-- ── Banner ── -->
@@ -31,7 +33,8 @@
           <span class="text-brand-400">BAZARIN</span>AJA
         </h1>
       </div>
-      <p class="text-white/70 text-sm">Harga terbaik, stok terbatas!</p>
+      <p class="text-white/70 text-sm">Hadir untuk menyediakan "barang bagus harga affordable" 😍</p>
+      <p class="text-white/70 text-sm">Barang NEW/PreLove yang hasilnya untuk sedekah yg akan disedekahkan untuk para penghafal Al-Qur'an dan penuntut Ilmu.</p>
     </div>
 
     <!-- ── Session Tabs ── -->
@@ -58,9 +61,9 @@
             <template v-if="session.isRunning">
               <span class="text-brand-400 font-semibold">● Sedang Berjalan</span>
             </template>
-            <template v-else>
+            <ClientOnly v-else>
               {{ sessionDayLabel(session.startTime) }}
-            </template>
+            </ClientOnly>
           </span>
         </button>
       </div>
@@ -165,27 +168,29 @@
     </div>
 
     <!-- ── Lightbox ── -->
-    <Transition name="lightbox">
-      <div
-        v-if="lightboxSrc"
-        class="fixed inset-0 z-[60] flex items-center justify-center bg-black/90"
-        @click="lightboxSrc = null"
-      >
-        <button
-          class="absolute top-4 right-4 text-white/70 hover:text-white"
-          @click.stop="lightboxSrc = null"
+    <ClientOnly>
+      <Transition name="lightbox">
+        <div
+          v-if="lightboxSrc"
+          class="fixed inset-0 z-[60] flex items-center justify-center bg-black/90"
+          @click="lightboxSrc = null"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-        <img
-          :src="lightboxSrc"
-          class="max-w-full max-h-full object-contain p-4"
-          @click.stop
-        />
-      </div>
-    </Transition>
+          <button
+            class="absolute top-4 right-4 text-white/70 hover:text-white"
+            @click.stop="lightboxSrc = null"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <img
+            :src="lightboxSrc"
+            class="max-w-full max-h-full object-contain p-4"
+            @click.stop
+          />
+        </div>
+      </Transition>
+    </ClientOnly>
 
     <!-- ── Checkout Modal ── -->
     <div v-if="showModal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 py-6">
@@ -311,8 +316,9 @@ const { data: products, pending: productsPending, refresh: refreshProducts } = a
 const availableCount = computed(() => products.value?.filter(p => p.status === 'AVAILABLE').length ?? 0)
 
 // Countdown global ke sesi yang running
-const now = ref(Date.now())
+const now = ref(0) // 0 on SSR — set to real time only on client to avoid hydration mismatch
 onMounted(() => {
+  now.value = Date.now()
   const tick = setInterval(() => {
     now.value = Date.now()
     if (now.value % 60000 < 1000) refreshSessions()
