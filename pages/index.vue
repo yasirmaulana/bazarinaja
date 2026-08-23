@@ -9,7 +9,7 @@
             <path d="M13 2L4.09 12.11A1 1 0 004 13h7l-1 9 9.91-11.11A1 1 0 0020 10h-7l1-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
-        <span class="font-black text-red-600 tracking-tight text-lg">BAZARIN<span class="text-gray-900">AJA</span></span>
+        <!-- <span class="font-black text-red-600 tracking-tight text-lg">BAZARIN<span class="text-gray-900">AJA</span></span> -->
       </div>
 
       <div v-if="selectedSession" class="flex items-center gap-2 text-sm">
@@ -28,7 +28,7 @@
           </svg>
         </div>
         <h1 class="text-4xl sm:text-6xl font-black text-white tracking-tight">
-          <span class="text-brand-400">FLASH</span> SALE
+          <span class="text-brand-400">BAZARIN</span>AJA
         </h1>
       </div>
       <p class="text-white/70 text-sm">Harga terbaik, stok terbatas!</p>

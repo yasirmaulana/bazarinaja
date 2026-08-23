@@ -15,18 +15,20 @@
 
     <div class="max-w-5xl mx-auto px-4 py-8">
       <!-- Tab Nav -->
-      <div class="flex gap-1 bg-gray-100 p-1 rounded-xl mb-6 w-fit">
-        <button
-          v-for="tab in tabs"
-          :key="tab.key"
-          class="px-4 py-2 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap"
-          :class="activeTab === tab.key
-            ? 'bg-white text-gray-900 shadow-xs'
-            : 'text-gray-500 hover:text-gray-700'"
-          @click="activeTab = tab.key"
-        >
-          {{ tab.label }}
-        </button>
+      <div class="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 mb-6">
+        <div class="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
+          <button
+            v-for="tab in tabs"
+            :key="tab.key"
+            class="px-4 py-2 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap"
+            :class="activeTab === tab.key
+              ? 'bg-white text-gray-900 shadow-xs'
+              : 'text-gray-500 hover:text-gray-700'"
+            @click="activeTab = tab.key"
+          >
+            {{ tab.label }}
+          </button>
+        </div>
       </div>
 
       <!-- ── Tab: Dashboard ── -->
@@ -110,7 +112,7 @@
               class="input-field"
             />
           </div>
-          <div class="flex gap-2 shrink-0">
+          <div class="flex gap-2 overflow-x-auto pb-0.5">
             <button
               v-for="f in orderStatusFilters"
               :key="f.value"
@@ -256,7 +258,7 @@
           <div class="relative flex-1">
             <input v-model="productSearch" type="text" placeholder="Cari nama produk..." class="input-field" />
           </div>
-          <div class="flex gap-2 shrink-0">
+          <div class="flex gap-2 overflow-x-auto pb-0.5">
             <button
               v-for="f in productStatusFilters"
               :key="f.value"
@@ -283,7 +285,7 @@
         </div>
         <div v-else class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           <div v-for="product in filteredProducts" :key="product.id" class="card overflow-hidden">
-            <div class="relative aspect-square bg-gray-100">
+            <div class="relative aspect-square bg-gray-100 overflow-hidden">
               <img :src="product.imageUrl" :alt="product.title" class="w-full h-full object-cover" />
               <span
                 class="absolute top-2 right-2 text-xs font-bold px-2 py-0.5 rounded-full"
@@ -321,7 +323,7 @@
 
       <!-- ── Tab: Konfigurasi ── -->
       <div v-else-if="activeTab === 'config'">
-        <div class="flex items-start gap-6 flex-col lg:flex-row">
+        <div class="flex items-start gap-6 flex-col md:flex-row">
           <!-- Form tambah sesi -->
           <div class="w-full max-w-sm shrink-0">
             <h2 class="text-lg font-bold text-gray-900 mb-4">Tambah Sesi Flash Sale</h2>
@@ -531,7 +533,7 @@
     </div>
 
     <!-- ── Tab: Pengaturan WA ── -->
-    <div v-else-if="activeTab === 'settings'" class="flex justify-center py-4">
+    <div v-else-if="activeTab === 'settings'" class="flex flex-col items-center gap-6 py-4 px-4">
       <div class="card p-6 space-y-6 w-full max-w-2xl">
         <h2 class="text-base font-bold text-gray-900">Template Pesan WA</h2>
 
@@ -581,7 +583,7 @@
       </div>
 
       <!-- Kelola Admin -->
-      <div class="card p-6 space-y-5">
+      <div class="card p-6 space-y-5 w-full max-w-2xl">
         <h2 class="text-base font-bold text-gray-900">Kelola Admin</h2>
 
         <!-- Daftar admin -->
@@ -605,14 +607,20 @@
         <!-- Form tambah admin -->
         <div class="border-t pt-4 space-y-3">
           <p class="text-sm font-semibold text-gray-700">Tambah Admin Baru</p>
-          <div class="flex gap-2">
-            <input v-model="adminForm.username" type="text" placeholder="Username" class="input-field flex-1" />
-            <input v-model="adminForm.password" type="password" placeholder="Password (min 6)" class="input-field flex-1" />
-            <button class="btn-primary shrink-0" :disabled="addingAdmin || !adminForm.username || !adminForm.password" @click="addAdmin">
-              <span v-if="addingAdmin" class="inline-block h-4 w-4 rounded-full border-2 border-black/30 border-t-black animate-spin" />
-              <span v-else>Tambah</span>
-            </button>
+          <div class="space-y-2">
+            <div>
+              <label class="block text-xs text-gray-500 mb-1">Username</label>
+              <input v-model="adminForm.username" type="text" placeholder="Masukkan username" class="input-field w-full" />
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 mb-1">Password</label>
+              <input v-model="adminForm.password" type="password" placeholder="Min. 6 karakter" class="input-field w-full" />
+            </div>
           </div>
+          <button class="btn-primary w-full" :disabled="addingAdmin || !adminForm.username || !adminForm.password" @click="addAdmin">
+            <span v-if="addingAdmin" class="inline-block h-4 w-4 rounded-full border-2 border-black/30 border-t-black animate-spin" />
+            <span v-else>Tambah Admin</span>
+          </button>
         </div>
       </div>
     </div>
@@ -1021,13 +1029,14 @@ function sessionLabel(sessionId: string) {
 
 function formatDateTime(iso: string) {
   return new Date(iso).toLocaleString('id-ID', {
+    timeZone: 'Asia/Jakarta',
     day: '2-digit', month: 'short', year: 'numeric',
     hour: '2-digit', minute: '2-digit', hour12: false
   })
 }
 
 function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false })
+  return new Date(iso).toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false })
 }
 
 function formatPrice(price: number | string) {

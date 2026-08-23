@@ -26,7 +26,7 @@ Setelah transfer, kirimkan bukti pembayaran ke admin. Terima kasih!`
 export default defineEventHandler(async (event) => {
   requireAdminSession(event)
 
-  const rows = await prisma.wATemplate.findMany()
+  const rows = await prisma.waTemplate.findMany()
   const result: Record<string, string> = { ...DEFAULTS }
   for (const row of rows) {
     result[row.key] = row.template

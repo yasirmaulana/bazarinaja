@@ -4,7 +4,7 @@ export default defineEventHandler(async (event) => {
 
   await Promise.all(
     Object.entries(body).map(([key, template]) =>
-      prisma.wATemplate.upsert({
+      prisma.waTemplate.upsert({
         where: { key },
         update: { template },
         create: { key, template }
