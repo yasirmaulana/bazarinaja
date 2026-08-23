@@ -108,7 +108,8 @@
           <img
             :src="detailGallery[detailActiveImg] ?? detailProduct?.imageUrl"
             :alt="detailProduct?.title"
-            class="w-full h-60 object-cover"
+            class="w-full h-60 object-cover cursor-zoom-in"
+            @click="lightboxSrc = detailGallery[detailActiveImg] ?? detailProduct?.imageUrl ?? null"
           />
           <!-- Navigasi panah -->
           <template v-if="detailGallery.length > 1">
@@ -162,6 +163,29 @@
         </div>
       </div>
     </div>
+
+    <!-- ── Lightbox ── -->
+    <Transition name="lightbox">
+      <div
+        v-if="lightboxSrc"
+        class="fixed inset-0 z-[60] flex items-center justify-center bg-black/90"
+        @click="lightboxSrc = null"
+      >
+        <button
+          class="absolute top-4 right-4 text-white/70 hover:text-white"
+          @click.stop="lightboxSrc = null"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        <img
+          :src="lightboxSrc"
+          class="max-w-full max-h-full object-contain p-4"
+          @click.stop
+        />
+      </div>
+    </Transition>
 
     <!-- ── Checkout Modal ── -->
     <div v-if="showModal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 py-6">
@@ -347,6 +371,7 @@ function sessionDayLabel(iso: string) {
 const showDetailModal = ref(false)
 const detailProduct = ref<Product | null>(null)
 const detailActiveImg = ref(0)
+const lightboxSrc = ref<string | null>(null)
 const detailGallery = computed(() => {
   if (!detailProduct.value) return []
   return [detailProduct.value.imageUrl, ...(detailProduct.value.images ?? [])].filter(Boolean)
@@ -409,3 +434,14 @@ async function submitCheckout() {
   }
 }
 </script>
+
+<style scoped>
+.lightbox-enter-active,
+.lightbox-leave-active {
+  transition: opacity 0.2s ease;
+}
+.lightbox-enter-from,
+.lightbox-leave-to {
+  opacity: 0;
+}
+</style>
