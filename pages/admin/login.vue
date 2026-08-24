@@ -66,7 +66,7 @@ async function login() {
   errorMsg.value = ''
   try {
     await $fetch('/api/admin/login', { method: 'POST', body: form })
-    await navigateTo('/admin')
+    window.location.href = '/admin'
   } catch (err: any) {
     errorMsg.value = err.data?.statusMessage || 'Terjadi kesalahan, coba lagi'
   } finally {
