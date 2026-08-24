@@ -226,7 +226,7 @@
     </div>
 
     <!-- ── Toast ── -->
-    <div v-if="toast.visible" class="fixed bottom-6 left-1/2 -translate-x-0.5 z-[60] w-full max-w-sm px-4">
+    <div v-if="toast.visible" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] w-full max-w-sm px-4">
       <div
         class="rounded-xl px-4 py-3 shadow-lg flex items-center gap-3 text-sm font-medium"
         :class="toast.type === 'success' ? 'bg-success-50 border border-success-500/30 text-success-700' : 'bg-error-50 border border-error-100 text-error-600'"
@@ -443,10 +443,31 @@ function showToast(type: 'success' | 'error', title: string, description = '') {
   toastTimer = setTimeout(() => { toast.visible = false }, 4000)
 }
 
+function loadBuyerFromStorage() {
+  if (process.client) {
+    try {
+      const saved = localStorage.getItem('flashsale-buyer')
+      if (saved) {
+        const data = JSON.parse(saved)
+        if (data.buyerName) form.buyerName = data.buyerName
+        if (data.buyerPhone) form.buyerPhone = data.buyerPhone
+      }
+    } catch {}
+  }
+}
+
+function saveBuyerToStorage() {
+  if (process.client) {
+    localStorage.setItem('flashsale-buyer', JSON.stringify({
+      buyerName: form.buyerName,
+      buyerPhone: form.buyerPhone
+    }))
+  }
+}
+
 function openCheckout(product: Product) {
   selectedProduct.value = product
-  form.buyerName = ''
-  form.buyerPhone = ''
+  loadBuyerFromStorage()
   showModal.value = true
 }
 
@@ -460,6 +481,7 @@ async function submitCheckout() {
       method: 'POST',
       body: { productId, buyerName: form.buyerName, buyerPhone: phone }
     })
+    saveBuyerToStorage()
     showModal.value = false
     // optimistic update
     soldPhones.value[productId] = maskPhone(phone)

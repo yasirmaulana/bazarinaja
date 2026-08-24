@@ -51,6 +51,22 @@
             <p class="text-xs text-gray-500 mb-1">Dibatalkan</p>
             <p class="text-2xl font-bold text-gray-500">{{ dashboardStats.cancelledCount }}</p>
           </div>
+          <div class="card p-4">
+            <p class="text-xs text-gray-500 mb-1">Penjualan Flash Sale</p>
+            <p class="text-2xl font-bold text-brand-700">{{ dashboardStats.flashSaleCount }}</p>
+          </div>
+          <div class="card p-4">
+            <p class="text-xs text-gray-500 mb-1">Pendapatan Flash Sale</p>
+            <p class="text-2xl font-bold text-brand-600">Rp {{ formatPrice(dashboardStats.flashSaleRevenue) }}</p>
+          </div>
+          <div class="card p-4">
+            <p class="text-xs text-gray-500 mb-1">Penjualan Offline</p>
+            <p class="text-2xl font-bold text-brand-700">{{ dashboardStats.offlineCount }}</p>
+          </div>
+          <div class="card p-4">
+            <p class="text-xs text-gray-500 mb-1">Pendapatan Offline</p>
+            <p class="text-2xl font-bold text-brand-600">Rp {{ formatPrice(dashboardStats.offlineRevenue) }}</p>
+          </div>
         </div>
 
         <!-- Charts -->
@@ -85,7 +101,7 @@
       <div v-if="activeTab === 'orders'">
         <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
           <h2 class="text-lg font-bold text-gray-900">Daftar Pesanan</h2>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 flex-wrap">
             <button
               v-if="selectedOrderIds.size > 0"
               class="btn-primary text-sm"
@@ -94,6 +110,9 @@
             >
               <span v-if="bulkNotifying" class="inline-block h-3.5 w-3.5 rounded-full border-2 border-black/30 border-t-black animate-spin mr-1"></span>
               <span>Kirim WA ke {{ selectedOrderIds.size }} terpilih</span>
+            </button>
+            <button class="btn-primary text-sm" @click="openOfflineOrderModal">
+              + Pesanan Offline
             </button>
             <button class="btn-secondary text-sm" @click="refreshOrders">
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 013.51 15"/></svg>
@@ -179,21 +198,31 @@
 
             <!-- Status + WA info -->
             <div class="shrink-0 flex flex-col items-start sm:items-end gap-1.5">
-              <span
-                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
-                :class="{
-                  'bg-success-50 text-success-700 border border-success-500/30': order.status === 'PAID',
-                  'bg-amber-50 text-amber-700 border border-brand-300': order.status === 'PENDING_PAYMENT',
-                  'bg-gray-100 text-gray-500 border border-gray-200': order.status === 'CANCELLED',
-                }"
-              >
-                <span class="w-1.5 h-1.5 rounded-full" :class="{
-                  'bg-success-700': order.status === 'PAID',
-                  'bg-amber-700': order.status === 'PENDING_PAYMENT',
-                  'bg-gray-400': order.status === 'CANCELLED',
-                }"></span>
-                {{ order.status === 'PAID' ? 'Lunas' : order.status === 'CANCELLED' ? 'Dibatalkan' : 'Belum Bayar' }}
-              </span>
+              <div class="flex items-center gap-1.5 flex-wrap justify-end">
+                <span
+                  class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                  :class="order.source === 'OFFLINE'
+                    ? 'bg-gray-100 text-gray-600 border border-gray-300'
+                    : 'bg-brand-50 text-brand-700 border border-brand-300'"
+                >
+                  {{ order.source === 'OFFLINE' ? 'Offline' : 'Flash Sale' }}
+                </span>
+                <span
+                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
+                  :class="{
+                    'bg-success-50 text-success-700 border border-success-500/30': order.status === 'PAID',
+                    'bg-amber-50 text-amber-700 border border-brand-300': order.status === 'PENDING_PAYMENT',
+                    'bg-gray-100 text-gray-500 border border-gray-200': order.status === 'CANCELLED',
+                  }"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full" :class="{
+                    'bg-success-700': order.status === 'PAID',
+                    'bg-amber-700': order.status === 'PENDING_PAYMENT',
+                    'bg-gray-400': order.status === 'CANCELLED',
+                  }"></span>
+                  {{ order.status === 'PAID' ? 'Lunas' : order.status === 'CANCELLED' ? 'Dibatalkan' : 'Belum Bayar' }}
+                </span>
+              </div>
               <!-- WA notify info -->
               <span v-if="order.notifyCount > 0" class="inline-flex items-center gap-1 text-[11px] text-green-700 font-medium">
                 <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.554 4.118 1.523 5.845L0 24l6.344-1.493A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.645-.52-5.148-1.424l-.369-.219-3.766.887.935-3.667-.241-.381A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
@@ -625,6 +654,68 @@
       </div>
     </div>
 
+    <!-- Modal: Pesanan Offline -->
+    <div v-if="showOfflineOrderModal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 py-6">
+      <div class="absolute inset-0 bg-black/40 backdrop-blur-[2px]" @click="showOfflineOrderModal = false" />
+      <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+        <h2 class="text-lg font-bold text-gray-900 mb-4">Pesanan Offline</h2>
+        <form class="space-y-4" @submit.prevent="submitOfflineOrder">
+          <div>
+            <label class="label-text">Produk <span class="text-error-600">*</span></label>
+            <select v-model="offlineOrderForm.productId" class="input-field" required>
+              <option value="">— Pilih produk tersedia —</option>
+              <option
+                v-for="p in availableProducts"
+                :key="p.id"
+                :value="p.id"
+              >
+                {{ p.title }} · Rp {{ formatPrice(p.price) }}
+              </option>
+            </select>
+            <p v-if="!availableProducts.length" class="text-xs text-amber-600 mt-1">
+              Tidak ada produk tersedia. Tambah produk di tab Produk terlebih dahulu.
+            </p>
+          </div>
+          <div>
+            <label class="label-text">Nama Pembeli <span class="text-error-600">*</span></label>
+            <input v-model="offlineOrderForm.buyerName" type="text" placeholder="Nama lengkap pembeli" class="input-field" required />
+          </div>
+          <div>
+            <label class="label-text">Nomor HP <span class="text-error-600">*</span></label>
+            <input v-model="offlineOrderForm.buyerPhone" type="tel" placeholder="08xxxxxxxxxx" class="input-field" required />
+          </div>
+          <div>
+            <label class="label-text">Status Pembayaran</label>
+            <div class="flex gap-2 mt-1">
+              <button
+                type="button"
+                class="flex-1 py-2 rounded-xl text-sm font-semibold border transition-colors"
+                :class="offlineOrderForm.paymentStatus === 'PAID'
+                  ? 'bg-success-50 text-success-700 border-success-500/40'
+                  : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'"
+                @click="offlineOrderForm.paymentStatus = 'PAID'"
+              >Sudah Bayar</button>
+              <button
+                type="button"
+                class="flex-1 py-2 rounded-xl text-sm font-semibold border transition-colors"
+                :class="offlineOrderForm.paymentStatus === 'PENDING_PAYMENT'
+                  ? 'bg-amber-50 text-amber-700 border-amber-300'
+                  : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'"
+                @click="offlineOrderForm.paymentStatus = 'PENDING_PAYMENT'"
+              >Belum Bayar</button>
+            </div>
+          </div>
+          <div class="flex gap-3 pt-2">
+            <button type="button" class="btn-secondary-full" @click="showOfflineOrderModal = false">Batal</button>
+            <button type="submit" class="btn-primary-full" :disabled="savingOfflineOrder">
+              <span v-if="savingOfflineOrder" class="inline-block h-4 w-4 rounded-full border-2 border-black/30 border-t-black animate-spin"></span>
+              <span v-else>Simpan Pesanan</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- Toast -->
     <div v-if="toast.visible" class="fixed bottom-6 left-1/2 -translate-x-0.5 z-[60] w-full max-w-sm px-4">
       <div
@@ -947,11 +1038,21 @@ const dashboardStats = computed(() => {
   const pending = all.filter(o => o.status === 'PENDING_PAYMENT')
   const cancelled = all.filter(o => o.status === 'CANCELLED')
   const revenue = paid.reduce((sum, o) => sum + Number(o.product?.price || 0), 0)
+  const offline = all.filter(o => o.source === 'OFFLINE')
+  const offlinePaid = offline.filter(o => o.status === 'PAID')
+  const offlineRevenue = offlinePaid.reduce((sum, o) => sum + Number(o.product?.price || 0), 0)
+  const flashSale = all.filter(o => o.source === 'FLASH_SALE')
+  const flashSalePaid = flashSale.filter(o => o.status === 'PAID')
+  const flashSaleRevenue = flashSalePaid.reduce((sum, o) => sum + Number(o.product?.price || 0), 0)
   return {
     totalOrders: all.length,
     totalRevenue: revenue,
     pendingCount: pending.length,
-    cancelledCount: cancelled.length
+    cancelledCount: cancelled.length,
+    offlineCount: offline.length,
+    offlineRevenue,
+    flashSaleCount: flashSale.length,
+    flashSaleRevenue
   }
 })
 
@@ -1137,6 +1238,50 @@ async function deleteAdmin(id: string) {
     showToast('error', e?.data?.statusMessage || 'Gagal menghapus admin')
   } finally {
     deletingAdminId.value = null
+  }
+}
+
+// Offline Order
+const showOfflineOrderModal = ref(false)
+const savingOfflineOrder = ref(false)
+const offlineOrderForm = reactive({
+  productId: '',
+  buyerName: '',
+  buyerPhone: '',
+  paymentStatus: 'PAID' as 'PAID' | 'PENDING_PAYMENT',
+})
+
+const availableProducts = computed(() =>
+  (products.value ?? []).filter((p: any) => p.status === 'AVAILABLE')
+)
+
+function openOfflineOrderModal() {
+  offlineOrderForm.productId = ''
+  offlineOrderForm.buyerName = ''
+  offlineOrderForm.buyerPhone = ''
+  offlineOrderForm.paymentStatus = 'PAID'
+  showOfflineOrderModal.value = true
+}
+
+async function submitOfflineOrder() {
+  savingOfflineOrder.value = true
+  try {
+    await $fetch('/api/admin/orders/offline', {
+      method: 'POST',
+      body: {
+        productId: offlineOrderForm.productId,
+        buyerName: offlineOrderForm.buyerName,
+        buyerPhone: offlineOrderForm.buyerPhone,
+        paymentStatus: offlineOrderForm.paymentStatus,
+      }
+    })
+    showOfflineOrderModal.value = false
+    await Promise.all([refreshOrders(), refreshProducts()])
+    showToast('success', 'Pesanan offline berhasil disimpan')
+  } catch (e: any) {
+    showToast('error', e?.data?.statusMessage || 'Gagal menyimpan pesanan offline')
+  } finally {
+    savingOfflineOrder.value = false
   }
 }
 </script>

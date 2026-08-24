@@ -2460,16 +2460,16 @@ _wH6JrtIxmaSoA8lCPWFnE9z4lQeXW6H5z3l5aymEQw
 const assets = {
   "/index.mjs": {
     "type": "text/javascript; charset=utf-8",
-    "etag": "\"242b6-YPMW+Tq1yHVpQOl5Omu8pMi+eoc\"",
-    "mtime": "2026-08-24T02:52:08.492Z",
-    "size": 148150,
+    "etag": "\"24409-lGlV7iUOlNwiwnJc5p1SKYHZdok\"",
+    "mtime": "2026-08-24T05:58:14.551Z",
+    "size": 148489,
     "path": "index.mjs"
   },
   "/index.mjs.map": {
     "type": "application/json",
-    "etag": "\"8464a-S3gIaUwpTgarJZWf65PMLP9/tQ0\"",
-    "mtime": "2026-08-24T02:52:08.492Z",
-    "size": 542282,
+    "etag": "\"84baa-OxOJ7pRPhWHE6eb5NDi8Hq602ic\"",
+    "mtime": "2026-08-24T05:58:14.551Z",
+    "size": 543658,
     "path": "index.mjs.map"
   }
 };
@@ -3381,6 +3381,7 @@ const _lazy_ONpWNv = () => Promise.resolve().then(function () { return notify_po
 const _lazy_ymbf_N = () => Promise.resolve().then(function () { return uploadProof_post$1; });
 const _lazy_eVZ7xn = () => Promise.resolve().then(function () { return bulkNotify_post$1; });
 const _lazy_uyCGnT = () => Promise.resolve().then(function () { return index_get$3; });
+const _lazy_OVDbBo = () => Promise.resolve().then(function () { return offline_post$1; });
 const _lazy_5uUqdT = () => Promise.resolve().then(function () { return _id__delete$1; });
 const _lazy_R5jZk1 = () => Promise.resolve().then(function () { return index_post$1; });
 const _lazy_5c9IF_ = () => Promise.resolve().then(function () { return waTemplate_get$1; });
@@ -3409,6 +3410,7 @@ const handlers = [
   { route: '/api/admin/orders/:id/upload-proof', handler: _lazy_ymbf_N, lazy: true, middleware: false, method: "post" },
   { route: '/api/admin/orders/bulk-notify', handler: _lazy_eVZ7xn, lazy: true, middleware: false, method: "post" },
   { route: '/api/admin/orders', handler: _lazy_uyCGnT, lazy: true, middleware: false, method: "get" },
+  { route: '/api/admin/orders/offline', handler: _lazy_OVDbBo, lazy: true, middleware: false, method: "post" },
   { route: '/api/admin/products/:id', handler: _lazy_5uUqdT, lazy: true, middleware: false, method: "delete" },
   { route: '/api/admin/products', handler: _lazy_R5jZk1, lazy: true, middleware: false, method: "post" },
   { route: '/api/admin/wa-template', handler: _lazy_5c9IF_, lazy: true, middleware: false, method: "get" },
@@ -3983,6 +3985,38 @@ const index_get$2 = defineEventHandler(async (event) => {
 const index_get$3 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   __proto__: null,
   default: index_get$2
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const offline_post = defineEventHandler(async (event) => {
+  requireAdminSession(event);
+  const body = await readBody(event);
+  if (!body.productId || !body.buyerName || !body.buyerPhone) {
+    throw createError({ statusCode: 400, statusMessage: "productId, buyerName, dan buyerPhone wajib diisi" });
+  }
+  const product = await prisma.product.findUnique({ where: { id: body.productId } });
+  if (!product) throw createError({ statusCode: 404, statusMessage: "Produk tidak ditemukan" });
+  if (product.status !== "AVAILABLE") throw createError({ statusCode: 409, statusMessage: "Produk sudah tidak tersedia" });
+  const [order] = await prisma.$transaction([
+    prisma.order.create({
+      data: {
+        productId: body.productId,
+        buyerName: body.buyerName,
+        buyerPhone: body.buyerPhone,
+        status: body.paymentStatus,
+        source: "OFFLINE"
+      }
+    }),
+    prisma.product.update({
+      where: { id: body.productId },
+      data: { status: "SOLD_OUT" }
+    })
+  ]);
+  return order;
+});
+
+const offline_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: offline_post
 }, Symbol.toStringTag, { value: 'Module' }));
 
 const _id__delete = defineEventHandler(async (event) => {
