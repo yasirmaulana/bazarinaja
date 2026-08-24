@@ -67,9 +67,9 @@ async function login() {
   try {
     await $fetch('/api/admin/login', { method: 'POST', body: form })
     window.location.href = '/admin'
+    return // loading tetap true sampai browser pindah halaman
   } catch (err: any) {
     errorMsg.value = err.data?.statusMessage || 'Terjadi kesalahan, coba lagi'
-  } finally {
     loading.value = false
   }
 }
