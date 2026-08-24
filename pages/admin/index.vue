@@ -1005,10 +1005,23 @@ const chartOptions = {
 const configForm = reactive({ title: 'Flash Sale Special', startTime: '', endTime: '' })
 const savingConfig = ref(false)
 
+// datetime-local input menghasilkan "YYYY-MM-DDTHH:mm" tanpa timezone.
+// Vercel server UTC akan parse sebagai UTC, bukan WIB — tambah offset +07:00 secara eksplisit.
+function toJakartaISO(localDatetime: string) {
+  return localDatetime ? `${localDatetime}:00+07:00` : ''
+}
+
 async function saveConfig() {
   savingConfig.value = true
   try {
-    await $fetch('/api/admin/flash-sale/config', { method: 'POST', body: configForm })
+    await $fetch('/api/admin/flash-sale/config', {
+      method: 'POST',
+      body: {
+        ...configForm,
+        startTime: toJakartaISO(configForm.startTime),
+        endTime: toJakartaISO(configForm.endTime),
+      }
+    })
     showToast('success', 'Sesi Flash Sale berhasil ditambahkan')
     configForm.title = 'Flash Sale Special'
     configForm.startTime = ''

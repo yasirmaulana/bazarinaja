@@ -252,7 +252,7 @@
         <span class="text-yellow-400">Mulai Bangun Produk Digitalmu Gratis Bersama Otomatisin!</span>
       </p>
       <a
-        href="https://otomatisin.web.id"
+        href="https://wa.me/6281586245143"
         target="_blank"
         rel="noopener noreferrer"
         class="shrink-0 bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-bold text-sm px-6 py-3 rounded-xl transition-colors shadow-lg"
