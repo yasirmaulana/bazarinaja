@@ -2460,16 +2460,16 @@ _wH6JrtIxmaSoA8lCPWFnE9z4lQeXW6H5z3l5aymEQw
 const assets = {
   "/index.mjs": {
     "type": "text/javascript; charset=utf-8",
-    "etag": "\"24409-lGlV7iUOlNwiwnJc5p1SKYHZdok\"",
-    "mtime": "2026-08-24T05:58:14.551Z",
-    "size": 148489,
+    "etag": "\"2497f-rM2e6SZODv0FrQ1kLM8+NrXr9Q8\"",
+    "mtime": "2026-08-24T07:49:05.930Z",
+    "size": 149887,
     "path": "index.mjs"
   },
   "/index.mjs.map": {
     "type": "application/json",
-    "etag": "\"84baa-OxOJ7pRPhWHE6eb5NDi8Hq602ic\"",
-    "mtime": "2026-08-24T05:58:14.551Z",
-    "size": 543658,
+    "etag": "\"85c50-mD2k+RYhYogN9xTp+2CTSsw3BkQ\"",
+    "mtime": "2026-08-24T07:49:05.930Z",
+    "size": 547920,
     "path": "index.mjs.map"
   }
 };
@@ -2691,7 +2691,7 @@ Silakan lakukan pembayaran ke rekening berikut:
 Setelah transfer, kirimkan bukti pembayaran ke admin. Terima kasih!`;
 async function getTemplate(key, fallback) {
   var _a;
-  const row = await prisma.wATemplate.findUnique({ where: { key } });
+  const row = await prisma.waTemplate.findUnique({ where: { key } });
   return (_a = row == null ? void 0 : row.template) != null ? _a : fallback;
 }
 async function sendPaymentNotice(targetPhone, buyerName, productTitle, price) {

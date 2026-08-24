@@ -8,7 +8,7 @@ Silakan lakukan pembayaran ke rekening berikut:
 Setelah transfer, kirimkan bukti pembayaran ke admin. Terima kasih!`
 
 async function getTemplate(key: string, fallback: string): Promise<string> {
-  const row = await prisma.wATemplate.findUnique({ where: { key } })
+  const row = await prisma.waTemplate.findUnique({ where: { key } })
   return row?.template ?? fallback
 }
 

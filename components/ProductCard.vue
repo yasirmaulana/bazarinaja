@@ -33,9 +33,11 @@
         <button
           v-if="flashActive && product.status === 'AVAILABLE'"
           class="btn-primary-full"
+          :disabled="buying"
           @click="$emit('buy', product)"
         >
-          Beli
+          <span v-if="buying" class="inline-block h-4 w-4 rounded-full border-2 border-black/30 border-t-black animate-spin"></span>
+          <span v-else>Beli</span>
         </button>
         <button
           v-else-if="flashActive && product.status === 'SOLD_OUT'"
@@ -54,6 +56,7 @@ defineProps<{
   product: { id: string; title: string; price: number | string; imageUrl: string; status: 'AVAILABLE' | 'SOLD_OUT' }
   flashActive: boolean
   maskedPhone?: string
+  buying?: boolean
 }>()
 
 defineEmits<{ buy: [product: any]; detail: [product: any] }>()

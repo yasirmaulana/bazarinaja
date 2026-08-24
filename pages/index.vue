@@ -95,6 +95,7 @@
           :product="product"
           :flash-active="!!(selectedSession?.isRunning)"
           :masked-phone="soldPhones[product.id] ?? product.maskedPhone"
+          :buying="instantBuyingId === product.id"
           @buy="openCheckout"
           @detail="openDetail"
         />
@@ -193,9 +194,9 @@
     </ClientOnly>
 
     <!-- ── Checkout Modal ── -->
-    <div v-if="showModal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 py-6">
+    <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center px-4 py-6">
       <div class="absolute inset-0 bg-black/40 backdrop-blur-[2px]" @click="showModal = false" />
-      <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+      <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6">
         <div class="flex items-center gap-3 p-3 bg-brand-50 border border-brand-200 rounded-xl mb-5">
           <img :src="selectedProduct?.imageUrl" :alt="selectedProduct?.title" class="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover shrink-0 border border-brand-300" />
           <div class="min-w-0">
@@ -418,6 +419,7 @@ function openDetail(product: Product) {
 // Checkout
 const showModal = ref(false)
 const submitting = ref(false)
+const instantBuyingId = ref<string | null>(null)
 const selectedProduct = ref<Product | null>(null)
 const form = reactive({ buyerName: '', buyerPhone: '' })
 const soldPhones = ref<Record<string, string>>({})
@@ -468,7 +470,34 @@ function saveBuyerToStorage() {
 function openCheckout(product: Product) {
   selectedProduct.value = product
   loadBuyerFromStorage()
+
+  if (form.buyerName && form.buyerPhone) {
+    instantCheckout(product, form.buyerName, form.buyerPhone)
+    return
+  }
+
   showModal.value = true
+}
+
+async function instantCheckout(product: Product, buyerName: string, buyerPhone: string) {
+  instantBuyingId.value = product.id
+  try {
+    await $fetch('/api/checkout', {
+      method: 'POST',
+      body: { productId: product.id, buyerName, buyerPhone }
+    })
+    // optimistic update
+    soldPhones.value[product.id] = maskPhone(buyerPhone)
+    if (products.value) {
+      const p = products.value.find((p: Product) => p.id === product.id)
+      if (p) p.status = 'SOLD_OUT'
+    }
+    showToast('success', 'Pesanan berhasil!', 'Admin akan segera menghubungi Anda via WhatsApp')
+  } catch (err: any) {
+    showToast('error', 'Gagal melakukan pembelian', err.data?.statusMessage)
+  } finally {
+    instantBuyingId.value = null
+  }
 }
 
 async function submitCheckout() {
@@ -486,7 +515,7 @@ async function submitCheckout() {
     // optimistic update
     soldPhones.value[productId] = maskPhone(phone)
     if (products.value) {
-      const p = products.value.find(p => p.id === productId)
+      const p = products.value.find((p: Product) => p.id === productId)
       if (p) p.status = 'SOLD_OUT'
     }
     showToast('success', 'Pesanan berhasil!', 'Admin akan segera menghubungi Anda via WhatsApp')
