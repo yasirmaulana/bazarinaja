@@ -94,7 +94,7 @@
           :key="product.id"
           :product="product"
           :flash-active="!!(selectedSession?.isRunning)"
-          :masked-phone="soldPhones[product.id]"
+          :masked-phone="soldPhones[product.id] ?? product.maskedPhone"
           @buy="openCheckout"
           @detail="openDetail"
         />
@@ -265,6 +265,22 @@
   <footer class="text-center py-6 text-xs text-gray-400">
     Powered by <a href="https://otomatisin.web.id" target="_blank" rel="noopener noreferrer" class="text-gray-500 hover:text-gray-700 underline underline-offset-2">Otomatisin</a>
   </footer>
+
+  <!-- ── Sold Out Notif ── -->
+  <ClientOnly>
+    <Transition name="sold-toast">
+      <div
+        v-if="soldToast"
+        class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-gray-900 text-white text-sm px-4 py-3 rounded-2xl shadow-xl max-w-xs w-full pointer-events-none"
+      >
+        <span class="text-lg shrink-0">🔥</span>
+        <div class="min-w-0">
+          <p class="font-semibold text-xs text-gray-400 leading-none mb-0.5">Baru saja terjual!</p>
+          <p class="font-medium truncate"><span class="text-brand-400">{{ soldToast.title }}</span> dibeli oleh {{ soldToast.maskedPhone }}</p>
+        </div>
+      </div>
+    </Transition>
+  </ClientOnly>
 </template>
 
 <script setup lang="ts">
@@ -286,6 +302,7 @@ interface Product {
   images: string[]
   status: 'AVAILABLE' | 'SOLD_OUT'
   sessionId: string | null
+  maskedPhone?: string | null
 }
 
 // Semua sesi untuk tabs
@@ -339,7 +356,16 @@ onMounted(() => {
     } catch {}
   }, 5000)
 
-  onUnmounted(() => { clearInterval(tick); clearInterval(poll) })
+  // Sold-out toast rotator
+  const soldNotif = setInterval(() => {
+    const sold = (products.value ?? []).filter(p => p.status === 'SOLD_OUT' && (soldPhones.value[p.id] ?? p.maskedPhone))
+    if (!sold.length) return
+    soldToastIdx.value = (soldToastIdx.value + 1) % sold.length
+    soldToastVisible.value = true
+    setTimeout(() => { soldToastVisible.value = false }, 4000)
+  }, 5000)
+
+  onUnmounted(() => { clearInterval(tick); clearInterval(poll); clearInterval(soldNotif) })
 })
 
 const sessionCountdown = computed(() => {
@@ -395,6 +421,15 @@ const submitting = ref(false)
 const selectedProduct = ref<Product | null>(null)
 const form = reactive({ buyerName: '', buyerPhone: '' })
 const soldPhones = ref<Record<string, string>>({})
+const soldToastIdx = ref(0)
+const soldToastVisible = ref(false)
+const soldToast = computed(() => {
+  if (!soldToastVisible.value) return null
+  const sold = (products.value ?? []).filter(p => p.status === 'SOLD_OUT' && (soldPhones.value[p.id] ?? p.maskedPhone))
+  if (!sold.length) return null
+  const p = sold[soldToastIdx.value % sold.length]
+  return { title: p.title, maskedPhone: soldPhones.value[p.id] ?? p.maskedPhone }
+})
 
 function maskPhone(phone: string) {
   return phone.length > 3 ? phone.slice(0, -3) + 'xxx' : 'xxx'
@@ -449,5 +484,15 @@ async function submitCheckout() {
 .lightbox-enter-from,
 .lightbox-leave-to {
   opacity: 0;
+}
+
+.sold-toast-enter-active,
+.sold-toast-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.sold-toast-enter-from,
+.sold-toast-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(16px);
 }
 </style>

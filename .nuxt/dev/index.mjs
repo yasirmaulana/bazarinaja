@@ -2457,7 +2457,22 @@ _yEh8pvOsNEni1YEQFGTVqVHIW9M46Ca70_JDNhaQRY,
 _wH6JrtIxmaSoA8lCPWFnE9z4lQeXW6H5z3l5aymEQw
 ];
 
-const assets = {};
+const assets = {
+  "/index.mjs": {
+    "type": "text/javascript; charset=utf-8",
+    "etag": "\"242b6-YPMW+Tq1yHVpQOl5Omu8pMi+eoc\"",
+    "mtime": "2026-08-24T02:52:08.492Z",
+    "size": 148150,
+    "path": "index.mjs"
+  },
+  "/index.mjs.map": {
+    "type": "application/json",
+    "etag": "\"8464a-S3gIaUwpTgarJZWf65PMLP9/tQ0\"",
+    "mtime": "2026-08-24T02:52:08.492Z",
+    "size": 542282,
+    "path": "index.mjs.map"
+  }
+};
 
 function readAsset (id) {
   const serverDir = dirname$1(fileURLToPath(globalThis._importMeta_.url));
@@ -4162,9 +4177,12 @@ const config_get$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProper
   default: config_get
 }, Symbol.toStringTag, { value: 'Module' }));
 
+function maskPhone(phone) {
+  return phone.length > 3 ? phone.slice(0, -3) + "xxx" : "xxx";
+}
 const index_get = defineEventHandler(async (event) => {
   const { sessionId } = getQuery$1(event);
-  return await prisma.product.findMany({
+  const products = await prisma.product.findMany({
     where: sessionId ? { sessionId: String(sessionId) } : {},
     orderBy: { createdAt: "asc" },
     select: {
@@ -4175,9 +4193,14 @@ const index_get = defineEventHandler(async (event) => {
       imageUrl: true,
       images: true,
       status: true,
-      sessionId: true
+      sessionId: true,
+      order: { select: { buyerPhone: true } }
     }
   });
+  return products.map(({ order, ...p }) => ({
+    ...p,
+    maskedPhone: p.status === "SOLD_OUT" && (order == null ? void 0 : order.buyerPhone) ? maskPhone(order.buyerPhone) : null
+  }));
 });
 
 const index_get$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
