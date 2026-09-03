@@ -1038,14 +1038,15 @@ const dashboardStats = computed(() => {
   const pending = all.filter(o => o.status === 'PENDING_PAYMENT')
   const cancelled = all.filter(o => o.status === 'CANCELLED')
   const revenue = paid.reduce((sum, o) => sum + Number(o.product?.price || 0), 0)
-  const offline = all.filter(o => o.source === 'OFFLINE')
+  const active = all.filter(o => o.status !== 'CANCELLED')
+  const offline = active.filter(o => o.source === 'OFFLINE')
   const offlinePaid = offline.filter(o => o.status === 'PAID')
   const offlineRevenue = offlinePaid.reduce((sum, o) => sum + Number(o.product?.price || 0), 0)
-  const flashSale = all.filter(o => o.source === 'FLASH_SALE')
+  const flashSale = active.filter(o => o.source === 'FLASH_SALE')
   const flashSalePaid = flashSale.filter(o => o.status === 'PAID')
   const flashSaleRevenue = flashSalePaid.reduce((sum, o) => sum + Number(o.product?.price || 0), 0)
   return {
-    totalOrders: all.length,
+    totalOrders: active.length,
     totalRevenue: revenue,
     pendingCount: pending.length,
     cancelledCount: cancelled.length,
