@@ -8,7 +8,6 @@ import { escapeHtml } from 'file:///home/yasir/Documents/Project/flashsale/node_
 import viteNodeEntry_mjs from 'file:///home/yasir/Documents/Project/flashsale/node_modules/@nuxt/vite-builder/dist/vite-node-entry.mjs';
 import { viteNodeFetch } from 'file:///home/yasir/Documents/Project/flashsale/node_modules/@nuxt/vite-builder/dist/vite-node.mjs';
 import bcrypt from 'file:///home/yasir/Documents/Project/flashsale/node_modules/bcryptjs/index.js';
-import { mkdir, writeFile, rename, unlink, readFile } from 'node:fs/promises';
 import { PutObjectCommand, S3Client, GetObjectCommand } from 'file:///home/yasir/Documents/Project/flashsale/node_modules/@aws-sdk/client-s3/dist-cjs/index.js';
 import { PrismaClient } from 'file:///home/yasir/Documents/Project/flashsale/node_modules/@prisma/client/default.js';
 import { withAccelerate } from 'file:///home/yasir/Documents/Project/flashsale/node_modules/@prisma/extension-accelerate/dist/index.js';
@@ -21,6 +20,7 @@ import { createFetch, Headers as Headers$1 } from 'file:///home/yasir/Documents/
 import { fetchNodeRequestHandler, callNodeRequestHandler } from 'file:///home/yasir/Documents/Project/flashsale/node_modules/node-mock-http/dist/index.mjs';
 import { createStorage, prefixStorage } from 'file:///home/yasir/Documents/Project/flashsale/node_modules/unstorage/dist/index.mjs';
 import unstorage_47drivers_47fs from 'file:///home/yasir/Documents/Project/flashsale/node_modules/unstorage/drivers/fs.mjs';
+import { mkdir, writeFile, rename, unlink, readFile } from 'node:fs/promises';
 import fsDriver from 'file:///home/yasir/Documents/Project/flashsale/node_modules/unstorage/drivers/fs-lite.mjs';
 import lruCache from 'file:///home/yasir/Documents/Project/flashsale/node_modules/unstorage/drivers/lru-cache.mjs';
 import { digest, hash as hash$1 } from 'file:///home/yasir/Documents/Project/flashsale/node_modules/ohash/dist/index.mjs';
@@ -2460,16 +2460,16 @@ _wH6JrtIxmaSoA8lCPWFnE9z4lQeXW6H5z3l5aymEQw
 const assets = {
   "/index.mjs": {
     "type": "text/javascript; charset=utf-8",
-    "etag": "\"2497f-rM2e6SZODv0FrQ1kLM8+NrXr9Q8\"",
-    "mtime": "2026-08-24T07:49:05.930Z",
-    "size": 149887,
+    "etag": "\"24c49-9FUfPPH6Rel6dJZwOttzoNpi7QM\"",
+    "mtime": "2026-09-03T05:34:22.575Z",
+    "size": 150601,
     "path": "index.mjs"
   },
   "/index.mjs.map": {
     "type": "application/json",
-    "etag": "\"85c50-mD2k+RYhYogN9xTp+2CTSsw3BkQ\"",
-    "mtime": "2026-08-24T07:49:05.930Z",
-    "size": 547920,
+    "etag": "\"85f72-+p1E5Fm47vzXguiuiWoUnB9SduI\"",
+    "mtime": "2026-09-03T05:34:22.576Z",
+    "size": 548722,
     "path": "index.mjs.map"
   }
 };
@@ -2734,13 +2734,13 @@ function getS3Client() {
     forcePathStyle: true
   });
 }
-async function uploadToS3(data, filename, contentType) {
+async function uploadToS3(data, filename, contentType, prefix = "products") {
   if (data.length > MAX_SIZE) {
     throw createError({ statusCode: 400, statusMessage: `Ukuran file terlalu besar. Maksimal 2 MB (saat ini ${(data.length / 1024 / 1024).toFixed(1)} MB)` });
   }
   const config = useRuntimeConfig();
   const client = getS3Client();
-  const key = `products/${Date.now()}-${filename}`;
+  const key = `${prefix}/${Date.now()}-${filename}`;
   await client.send(new PutObjectCommand({
     Bucket: config.s3Bucket,
     Key: key,
@@ -3894,19 +3894,19 @@ const notify_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.definePrope
 }, Symbol.toStringTag, { value: 'Module' }));
 
 const uploadProof_post = defineEventHandler(async (event) => {
+  var _a;
   requireAdminSession(event);
   const id = getRouterParam(event, "id");
   const formData = await readMultipartFormData(event);
   if (!formData) throw createError({ statusCode: 400, statusMessage: "File tidak ditemukan" });
   const file = formData.find((f) => f.name === "proof");
   if (!file || !file.filename) throw createError({ statusCode: 400, statusMessage: "File bukti transfer wajib diupload" });
-  const filename = `proof-${Date.now()}-${file.filename}`;
-  const filePath = join(process.cwd(), "public", "uploads", filename);
-  await writeFile(filePath, file.data);
+  const filename = `${Date.now()}-${file.filename}`;
+  const proofUrl = await uploadToS3(file.data, filename, (_a = file.type) != null ? _a : "application/octet-stream", "proofs");
   const updated = await prisma.order.update({
     where: { id },
     data: {
-      paymentProof: `/uploads/${filename}`,
+      paymentProof: proofUrl,
       status: "PAID"
     }
   });

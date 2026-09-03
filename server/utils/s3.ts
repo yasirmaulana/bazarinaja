@@ -15,14 +15,14 @@ export function getS3Client() {
   })
 }
 
-export async function uploadToS3(data: Buffer, filename: string, contentType: string): Promise<string> {
+export async function uploadToS3(data: Buffer, filename: string, contentType: string, prefix = 'products'): Promise<string> {
   if (data.length > MAX_SIZE) {
     throw createError({ statusCode: 400, statusMessage: `Ukuran file terlalu besar. Maksimal 2 MB (saat ini ${(data.length / 1024 / 1024).toFixed(1)} MB)` })
   }
 
   const config = useRuntimeConfig()
   const client = getS3Client()
-  const key = `products/${Date.now()}-${filename}`
+  const key = `${prefix}/${Date.now()}-${filename}`
 
   await client.send(new PutObjectCommand({
     Bucket: config.s3Bucket,
